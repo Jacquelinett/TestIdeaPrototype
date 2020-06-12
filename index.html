@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+</head>
+
+<body onload="update();">
+    <canvas id="canvas" width="650" height="180"></canvas>
+    <p>Remaining Time: <span id="timer"></span>
+    <p>Input: <span id="input"></span>
+    <p>Current moveset: <span id="output"></span>
+</body>
+
+<script type="application/javascript">
+    let width = 30;
+    let height = 5;
+    let padding = 20;
+
+    let playerX = 1;
+    let playerY = 5;
+
+    let timer = 3000;
+    let currentTime = timer;
+
+    let actionTimer = 500;
+    let currentActionTimer = 0;
+
+    let lastUpdated = -1;
+
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+
+    let gWidth = width * padding;
+    let gHeight = height * padding;
+
+    let timerLabel = document.getElementById('timer');
+    let barLabel = document.getElementById('input');
+    let outLabel = document.getElementById('output');
+
+    let inputted = [];
+    let outputted = [];
+    let maxInput = 6;
+
+    let justJumped = false;
+
+    document.addEventListener('keyup', function (event) {
+        // 0 = moving left
+        // 1 = movinng right
+        // 2 = jump
+
+        if (inputted.length < 6) {
+            if (event.keyCode == 37) {
+                inputted.push(0);
+            }
+            else if (event.keyCode == 39) {
+                inputted.push(1);
+            }
+            else if (event.keyCode == 38) {
+                inputted.push(2);
+            }
+        }
+    });
+
+    function update(time) {
+        // Basic loop:
+        let delta = lastUpdated < 0 ? time : time - lastUpdated;
+
+        if (delta) {
+            currentTime -= delta;
+            currentActionTimer -= delta;
+        }
+        
+        // Turn ended
+        if (currentTime < 0) {
+            currentTime = timer;
+            outputted = inputted;
+            inputted = [];
+        } else {
+
+        }
+
+        if (currentActionTimer < 0) {
+            currentActionTimer = actionTimer;
+            
+            justJumped = false;
+
+            if (outputted.length > 0) {
+                let shift = outputted.shift();
+                if (shift == 0) {
+                    if (playerX > 1) {
+                        playerX--;
+                    }
+                }
+                else if (shift == 1) {
+                    if (playerX < width) {
+                        playerX++;
+                    }
+                }
+                else if (shift == 2) {
+                    if (playerY == 5) {
+                        playerY = 3;
+                        justJumped = true;
+                    }
+                }
+            }
+
+            if (playerY < 5 && !justJumped) {
+                playerY++;
+            }
+
+            //console.log(playerY);
+        } else {
+
+        }
+
+        lastUpdated = time;
+
+        ctx.clearRect(0, 0, 650, 180);
+
+        for (var x = 0; x <= gWidth; x += padding) {
+            ctx.moveTo(0.5 + x + padding, padding);
+            ctx.lineTo(0.5 + x + padding, gHeight + padding);
+        }
+
+        for (var x = 0; x <= gHeight; x += padding) {
+            ctx.moveTo(padding, 0.5 + x + padding);
+            ctx.lineTo(gWidth + padding, 0.5 + x + padding);
+        }
+
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+
+        ctx.fillStyle = '#FD0';
+        ctx.fillRect(playerX * padding, playerY * padding, padding, padding);
+
+        timerLabel.innerHTML = Math.floor(currentTime);
+
+        let bar = "";
+        for (var i = 0; i < 6; i++) {
+            if (i < inputted.length) {
+                if (inputted[i] == 0) {
+                    bar += "< ";
+                } else if (inputted[i] == 1) {
+                    bar += "> ";
+                } else if (inputted[i] == 2) {
+                    bar += "^ ";
+                }
+            } else {
+                bar += "__ ";
+            }
+        }
+
+        let out = "";
+        for (var i = 0; i < 6; i++) {
+            if (i < outputted.length) {
+                if (outputted[i] == 0) {
+                    out += "< ";
+                } else if (outputted[i] == 1) {
+                    out += "> ";
+                } else if (inputted[i] == 2) {
+                    out += "^ ";
+                }
+            } else {
+                out += "__ ";
+            }
+        }
+
+        barLabel.innerHTML = bar;
+        outLabel.innerHTML = out;
+
+        window.requestAnimationFrame(update);
+    }
+</script>
+
+</html>
